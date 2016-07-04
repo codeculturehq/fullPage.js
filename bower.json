@@ -29,6 +29,7 @@
     "examples"
   ],
   "dependencies": {
-      "jquery": ">=1.6.0"
-    }
+    "jquery": ">=1.6.0",
+    "lethargy": "^1.0.4"
+  }
 }
