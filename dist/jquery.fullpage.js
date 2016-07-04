@@ -1176,63 +1176,71 @@
             var curTime = new Date().getTime();
             var isNormalScroll = $(COMPLETELY_SEL).hasClass(NORMAL_SCROLL);
 
-            //autoscrolling and not zooming?
-            if(options.autoScrolling && !controlPressed && !isNormalScroll){
-                // cross-browser wheel delta
-                e = e || window.event;
-                var value = e.wheelDelta || -e.deltaY || -e.detail;
-                var delta = Math.max(-1, Math.min(1, value));
+            var lethargy = new Lethargy();
+            $(window).bind('mousewheel DOMMouseScroll wheel MozMousePixelScroll', function(f) {
+                f.preventDefault();
+                f.stopPropagation();
+                if(lethargy.check(f) !== false) {
+                    //autoscrolling and not zooming?
+                    if(options.autoScrolling && !controlPressed && !isNormalScroll){
+                        // cross-browser wheel delta
+                        e = e || window.event;
+                        var value = e.wheelDelta || -e.deltaY || -e.detail;
+                        var delta = Math.max(-1, Math.min(1, value));
 
-                var horizontalDetection = typeof e.wheelDeltaX !== 'undefined' || typeof e.deltaX !== 'undefined';
-                var isScrollingVertically = (Math.abs(e.wheelDeltaX) < Math.abs(e.wheelDelta)) || (Math.abs(e.deltaX ) < Math.abs(e.deltaY) || !horizontalDetection);
+                        var horizontalDetection = typeof e.wheelDeltaX !== 'undefined' || typeof e.deltaX !== 'undefined';
+                        var isScrollingVertically = (Math.abs(e.wheelDeltaX) < Math.abs(e.wheelDelta)) || (Math.abs(e.deltaX ) < Math.abs(e.deltaY) || !horizontalDetection);
 
-                //Limiting the array to 150 (lets not waste memory!)
-                if(scrollings.length > 149){
-                    scrollings.shift();
-                }
-
-                //keeping record of the previous scrollings
-                scrollings.push(Math.abs(value));
-
-                //preventing to scroll the site on mouse wheel when scrollbar is present
-                if(options.scrollBar){
-                    e.preventDefault ? e.preventDefault() : e.returnValue = false;
-                }
-
-                var activeSection = $(SECTION_ACTIVE_SEL);
-                var scrollable = options.scrollOverflowHandler.scrollable(activeSection);
-
-                //time difference between the last scroll and the current one
-                var timeDiff = curTime-prevTime;
-                prevTime = curTime;
-
-                //haven't they scrolled in a while?
-                //(enough to be consider a different scrolling action to scroll another section)
-                if(timeDiff > 200){
-                    //emptying the array, we dont care about old scrollings for our averages
-                    scrollings = [];
-                }
-
-                if(canScroll){
-                    var averageEnd = getAverage(scrollings, 10);
-                    var averageMiddle = getAverage(scrollings, 70);
-                    var isAccelerating = averageEnd >= averageMiddle;
-
-                    //to avoid double swipes...
-                    if(isAccelerating && isScrollingVertically){
-                        //scrolling down?
-                        if (delta < 0) {
-                            scrolling('down', scrollable);
-
-                        //scrolling up?
-                        }else {
-                            scrolling('up', scrollable);
+                        //Limiting the array to 150 (lets not waste memory!)
+                        if(scrollings.length > 149){
+                            scrollings.shift();
                         }
-                    }
-                }
 
-                return false;
-            }
+                        //keeping record of the previous scrollings
+                        scrollings.push(Math.abs(value));
+
+                        //preventing to scroll the site on mouse wheel when scrollbar is present
+                        if(options.scrollBar){
+                            e.preventDefault ? e.preventDefault() : e.returnValue = false;
+                        }
+
+                        var activeSection = $(SECTION_ACTIVE_SEL);
+                        var scrollable = options.scrollOverflowHandler.scrollable(activeSection);
+
+                        //time difference between the last scroll and the current one
+                        var timeDiff = curTime-prevTime;
+                        prevTime = curTime;
+
+                        //haven't they scrolled in a while?
+                        //(enough to be consider a different scrolling action to scroll another section)
+                        if(timeDiff > 200){
+                            //emptying the array, we dont care about old scrollings for our averages
+                            scrollings = [];
+                        }
+
+                        if(canScroll){
+                            var averageEnd = getAverage(scrollings, 10);
+                            var averageMiddle = getAverage(scrollings, 70);
+                            var isAccelerating = averageEnd >= averageMiddle;
+
+                            //to avoid double swipes...
+                            if(isAccelerating && isScrollingVertically){
+                                //scrolling down?
+                                if (delta < 0) {
+                                    scrolling('down', scrollable);
+
+                                    //scrolling up?
+                                }else {
+                                    scrolling('up', scrollable);
+                                }
+                            }
+                        }
+
+                        return false;
+                    }
+
+                }
+            })
 
             if(options.fitToSection){
                 //stopping the auto scroll to adjust to a section
